@@ -1,7 +1,7 @@
 base   commandpalette
 author  Kenan Akinci
 email   hey@kenan.fyi
-date    2026-09-19
+date    2026-09-30
 name   Command Palette
 desc   Floating keyboard-activated search bar with instant results.
 url    https://github.com/kenandotfyi/dokuwiki-plugin-commandpalette
