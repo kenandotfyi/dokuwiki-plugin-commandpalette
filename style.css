@@ -1,0 +1,80 @@
+#cmdp-search-modal {
+    display: none;
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 520px;
+    max-height: 65vh;
+    background: white;
+    border: 1px solid black;
+    z-index: 99999;
+    overflow-y: auto;
+}
+
+#cmdp-header{
+    background-color: black;
+    color: white;
+    padding: 4px;
+}
+
+#cmdp-input {
+    width: calc(100% - 3px);
+    padding: 4px;
+    border: 1px solid white;
+    border-radius: 0;
+    margin: 8px;
+    outline: none;
+}
+
+#cmdp-input:focus {
+    border-color: gainsboro;
+}
+
+#cmdp-results {
+    padding: 8px;
+}
+
+#cmdp-results a {
+    color: #2F4F4F;
+    display: block;
+    padding: 0px;
+    padding-left: 6px;
+    padding-right: 6px;
+    outline: none; /* remove default browser outline, we style focus ourselves below */
+    text-decoration: none;
+}
+
+#cmdp-results ul {
+    list-style: none;
+    padding: 0;
+
+    & li {
+        margin-left: 0;
+        list-style-image: none;
+    }
+}
+
+#cmdp-results a:focus,
+#cmdp-results a:hover {
+    background: black !important;
+    color: white !important;
+}
+#cmdp-results li.cmdp-folder > div.li > a::before,
+#cmdp-results li.cmdp-folder > a::before {
+    content: "▸";
+    display: inline-block;
+    width: 1em;
+    margin-right: 4px;
+    transition: transform 0.1s ease;
+}
+
+#cmdp-results li.cmdp-folder.cmdp-closed > div.li > a::before,
+#cmdp-results li.cmdp-folder.cmdp-closed > a::before {
+    transform: rotate(0deg);
+}
+
+#cmdp-results li.cmdp-folder.cmdp-open > div.li > a::before,
+#cmdp-results li.cmdp-folder.cmdp-open > a::before {
+    transform: rotate(90deg);
+}
