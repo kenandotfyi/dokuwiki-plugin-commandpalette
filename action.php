@@ -49,6 +49,14 @@ class action_plugin_commandpalette extends ActionPlugin
 
         header('Content-Type: text/html; charset=utf-8');
 
+        // Indexmenu reads $INFO['id'] while formatting namespace headpages.
+        // AJAX requests do not necessarily have pageinfo initialized, even
+        // though the index itself is rendered for the current wiki page.
+        global $INFO;
+        if (!is_array($INFO)) {
+            $INFO = pageinfo();
+        }
+
         // Adjust the indexmenu syntax/params below to match what you
         // already use in your sidebar (namespace, sort options, etc.)
         $renderInfo = [];

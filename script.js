@@ -101,7 +101,9 @@ async function loadDefaultIndex(results) {
     cmdpResultsController = controller;
 
     try {
-        const url = DOKU_BASE + "lib/exe/ajax.php?call=cmdpalette_index";
+        const currentPageId = window.JSINFO && JSINFO.id;
+        const url = DOKU_BASE + "lib/exe/ajax.php?call=cmdpalette_index" +
+            (currentPageId ? "&id=" + encodeURIComponent(currentPageId) : "");
         const response = await fetch(url, {
             credentials: "same-origin",
             signal: controller.signal
