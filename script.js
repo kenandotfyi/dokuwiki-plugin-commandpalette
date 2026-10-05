@@ -209,7 +209,8 @@ document.addEventListener("DOMContentLoaded", () => {
         newPage: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><path d="M14 2v6h6M12 12v6M9 15h6"></path>',
         delete: '<path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6"></path><path d="M10 11v5m4-5v5"></path>',
         media: '<rect x="3" y="3" width="18" height="14" rx="0"></rect><circle cx="8.5" cy="8" r="1.5"></circle><path d="m21 13-5-5L5 17m4 4h12V9"></path>',
-        swap: '<path d="M17 3l4 4-4 4"></path><path d="M3 7h18M7 21l-4-4 4-4"></path><path d="M21 17H3"></path>'
+        swap: '<path d="M17 3l4 4-4 4"></path><path d="M3 7h18M7 21l-4-4 4-4"></path><path d="M21 17H3"></path>',
+        closeAll: '<rect x="3" y="3" width="8" height="8"></rect><rect x="13" y="13" width="8" height="8"></rect><path d="m15 5 4 4m0-4-4 4M5 15l4 4m0-4-4 4"></path>'
     };
 
     const homeButton = document.getElementById('cmdp-home-button');
@@ -346,31 +347,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const currentPageId = (window.JSINFO && JSINFO.id) || '';
         const currentUrl = new URL(window.location.href);
-        const rightPageId = currentUrl.searchParams.get('right');
-        if (currentPageId && rightPageId && document.getElementById('panelnav-right')) {
+        const openPanelIds = currentUrl.searchParams.getAll('p').filter(Boolean);
+        const firstPanelId = openPanelIds[0];
+        const hasOnePanel = openPanelIds.length === 1;
+        const panelCount = openPanelIds.length;
+        if (panelCount > 0 && typeof window.infinitePanelsCloseAllAdditionalPanes === 'function') {
+            addAction('Close all panes', 'closeAll', null, null, () => {
+                window.infinitePanelsCloseAllAdditionalPanes();
+            }, panelActions);
+        }
+        if (currentPageId && firstPanelId && hasOnePanel) {
             addAction('Swap panels', 'swap', null, null, () => {
                 const nextUrl = new URL(window.location.href);
                 const baseUrl = new URL(DOKU_BASE, window.location.origin);
-                const dokuPhpPath = new URL('doku.php', baseUrl).pathname;
-
-                // Keep the site's current DokuWiki URL style while making
-                // the former right page the new left page.
-                if (nextUrl.searchParams.has('id')) {
-                    nextUrl.searchParams.set('id', rightPageId);
-                } else if (nextUrl.pathname.startsWith(dokuPhpPath + '/')) {
-                    nextUrl.pathname = dokuPhpPath + '/' + encodeURIComponent(rightPageId)
-                        .replace(/%3A/gi, ':');
-                } else {
-                    nextUrl.pathname = baseUrl.pathname + encodeURIComponent(rightPageId)
-                        .replace(/%3A/gi, ':');
-                }
-
-                nextUrl.searchParams.delete('panelnav');
-                nextUrl.searchParams.set('right', currentPageId);
-                const readableUrl = nextUrl.href.replace(/([?&]right=)[^&]*/, (_, prefix) => {
-                    return prefix + encodeURIComponent(currentPageId).replace(/%3A/gi, ':');
+                const basePath = baseUrl.pathname.endsWith('/') ? baseUrl.pathname : `${baseUrl.pathname}/`;
+                nextUrl.pathname = `${basePath}${encodeURIComponent(firstPanelId).replace(/%3A/gi, ':')}`;
+                nextUrl.searchParams.delete('p');
+                nextUrl.searchParams.append('p', currentPageId);
+                const query = nextUrl.searchParams.toString().replace(/(^|&)p=([^&]*)/g, (_match, prefix, value) => {
+                    return `${prefix}p=${value.replace(/%3A/gi, ':')}`;
                 });
-                window.location.href = readableUrl;
+                window.location.href = `${nextUrl.origin}${nextUrl.pathname}${query ? `?${query}` : ''}${nextUrl.hash}`;
             }, panelActions);
         }
 
@@ -420,7 +417,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 200);
     });
 
-    // Clicking a result: open it in panelnav's right panel when that
+    // Clicking a result: open it in InfinitePanels when that
     // plugin is active, and close the palette since we've "gone" there.
     // Folder disclosure buttons are separate controls, so every page link
     // in the tree follows the same navigation behavior as search results.
@@ -434,12 +431,13 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        if (typeof window.panelnavOpenInRightPanel === 'function') {
+        const openInPanel = window.infinitepanelsOpenPage;
+        if (typeof openInPanel === 'function') {
             e.preventDefault();
-            window.panelnavOpenInRightPanel(a.href);
+            openInPanel(a.href);
             closePalette();
         }
-        // else: panelnav isn't active, let the link navigate normally
+        // else: no panel plugin is active, so let the link navigate normally
     });
 
     // Move focus to a result only after the pointer actually moves over it.

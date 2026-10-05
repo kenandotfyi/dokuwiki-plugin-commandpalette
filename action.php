@@ -15,26 +15,9 @@ class action_plugin_commandpalette extends ActionPlugin
     /** @inheritDoc */
     public function register(EventHandler $controller)
     {
-       // Load JS and CSS
-        $controller->register_hook('TPL_METAHEADER_OUTPUT', 'BEFORE', $this, 'addAssets');
         // AJAX endpoint that renders the default page index list
         $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'ajaxIndex');
 }
-
-    public function addAssets(Event $event) {
-        $event->data['script'][] = [
-            'type' => 'text/javascript',
-            'charset' => 'utf-8',
-            '_data'   => '',
-            'src'  => DOKU_PLUGIN.'commandpalette/script.js'
-        ];
-        $event->data['style'][] = [
-            'type' => 'text/css',
-            'charset' => 'utf-8',
-            '_data'   => '',
-            'href' => DOKU_PLUGIN.'commandpalette/style.css'
-        ];
-    }
 
     /**
      * AJAX endpoint (call=cmdpalette_index) that renders the same
