@@ -37,6 +37,43 @@
     border-bottom: 1px solid #e8edf3;
 }
 
+#cmdp-theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    padding: 5px;
+    border: 1px solid transparent;
+    color: #64748b;
+    background: transparent;
+    cursor: pointer;
+}
+
+#cmdp-theme-toggle svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+html[data-theme="light"] .cmdp-theme-icon-dark,
+html[data-theme="dark"] .cmdp-theme-icon-light {
+    display: none;
+}
+
+#cmdp-theme-toggle:hover,
+#cmdp-theme-toggle:focus-visible {
+    border-color: #cbd5e1;
+    color: #0f172a;
+    background: #f1f5f9;
+    outline: none;
+}
+
 #cmdp-home-button {
     display: inline-flex;
     align-items: center;
@@ -375,4 +412,79 @@
 
 #cmdp-results li.cmdp-folder.cmdp-open > .cmdp-tree-row .cmdp-folder-toggle::before {
     transform: rotate(45deg);
+}
+
+/* Follow Simpl's saved appearance when the command palette is open. */
+html[data-theme="dark"] #cmdp-dialog {
+    color: #d9e0e5;
+    background: #20272d;
+    border-color: #46515a;
+}
+
+html[data-theme="dark"] #cmdp-search-row,
+html[data-theme="dark"] #cmdp-actions,
+html[data-theme="dark"] #cmdp-recents,
+html[data-theme="dark"] #cmdp-results .cmdp-search-section + .cmdp-search-section {
+    border-color: #46515a;
+}
+
+html[data-theme="dark"] #cmdp-home-button,
+html[data-theme="dark"] #cmdp-theme-toggle,
+html[data-theme="dark"] #cmdp-search-icon,
+html[data-theme="dark"] #cmdp-recents .cmdp-recent-link,
+html[data-theme="dark"] #cmdp-results a,
+html[data-theme="dark"] #cmdp-results dl.search_results dd.meta,
+html[data-theme="dark"] #cmdp-results dl.search_results dd.snippet,
+html[data-theme="dark"] #cmdp-results .cmdp-search-section-title,
+html[data-theme="dark"] #cmdp-results .cmdp-search-state,
+html[data-theme="dark"] #cmdp-actions .cmdp-action-group-title {
+    color: #c2cdd5;
+}
+
+html[data-theme="dark"] #cmdp-input {
+    color: #edf2f5;
+}
+
+html[data-theme="dark"] #cmdp-input::placeholder {
+    color: #9baab5;
+}
+
+html[data-theme="dark"] #cmdp-escape-hint,
+html[data-theme="dark"] #cmdp-recents {
+    background: #252d33;
+    border-color: #46515a;
+}
+
+html[data-theme="dark"] #cmdp-actions .cmdp-action {
+    color: #d9e0e5;
+    background: #252d33;
+    border-color: #46515a;
+}
+
+html[data-theme="dark"] #cmdp-actions .cmdp-action:hover,
+html[data-theme="dark"] #cmdp-actions .cmdp-action:focus,
+html[data-theme="dark"] #cmdp-home-button:hover,
+html[data-theme="dark"] #cmdp-home-button:focus-visible,
+html[data-theme="dark"] #cmdp-theme-toggle:hover,
+html[data-theme="dark"] #cmdp-theme-toggle:focus-visible,
+html[data-theme="dark"] #cmdp-results .cmdp-folder-toggle:hover,
+html[data-theme="dark"] #cmdp-results .cmdp-folder-toggle:focus-visible {
+    color: #f1f4f6;
+    background: #35434c;
+    border-color: #657985;
+}
+
+html[data-theme="dark"] #cmdp-results a:focus,
+html[data-theme="dark"] #cmdp-results a:hover {
+    color: #f1f4f6 !important;
+    background: #35434c !important;
+}
+
+html[data-theme="dark"] #cmdp-results ul ul {
+    border-color: #46515a;
+}
+
+html[data-theme="dark"] #cmdp-results .search_hit {
+    color: #17201a;
+    background: #b6d56a;
 }

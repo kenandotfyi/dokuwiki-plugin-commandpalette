@@ -31,10 +31,21 @@ function ensureModal() {
 
     modal = document.createElement('div');
     modal.id = 'cmdp-search-modal';
+    const showThemeToggle = Boolean(
+        window.SimplDarkModeConfig &&
+        window.SimplDarkModeConfig.enabled &&
+        window.CommandPaletteConfig &&
+        window.CommandPaletteConfig.showThemeToggle
+    );
+
     modal.innerHTML =
         '<div id="cmdp-dialog" role="dialog" aria-modal="true" aria-label="Command palette">' +
             '<div id="cmdp-search-row">' +
                 '<a id="cmdp-home-button" href="' + DOKU_BASE + '" aria-label="Home" title="Home"></a>' +
+                (showThemeToggle ? '<button id="cmdp-theme-toggle" class="cmdp-theme-toggle" type="button" aria-label="Toggle light and dark mode" title="Toggle light and dark mode">' +
+                    '<svg class="cmdp-theme-icon-light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path></svg>' +
+                    '<svg class="cmdp-theme-icon-dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.5A8.5 8.5 0 0 1 8.5 3.5 8.5 8.5 0 1 0 20.5 15.5Z"></path></svg>' +
+                '</button>' : '') +
                 '<svg id="cmdp-search-icon" viewBox="0 0 24 24" aria-hidden="true">' +
                     '<circle cx="11" cy="11" r="7"></circle>' +
                     '<path d="m20 20-4-4"></path>' +

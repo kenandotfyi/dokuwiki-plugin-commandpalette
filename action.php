@@ -15,6 +15,7 @@ class action_plugin_commandpalette extends ActionPlugin
     /** @inheritDoc */
     public function register(EventHandler $controller)
     {
+        $controller->register_hook('TPL_METAHEADER_OUTPUT', 'BEFORE', $this, 'addJsConfig');
         // AJAX endpoint that renders the default page index list
         $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'ajaxIndex');
         $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'ajaxRecent');
@@ -46,6 +47,17 @@ class action_plugin_commandpalette extends ActionPlugin
         $renderInfo = [];
         $instructions = p_get_instructions($this->getConf('indexmenu'));
         echo p_render('xhtml', $instructions, $renderInfo);
+    }
+
+    /** Expose command-palette display settings to its browser script. */
+    public function addJsConfig(Event $event)
+    {
+        $event->data['script'][] = [
+            'type' => 'text/javascript',
+            '_data' => 'window.CommandPaletteConfig = ' . json_encode([
+                'showThemeToggle' => (bool) $this->getConf('show_theme_toggle', 1),
+            ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';',
+        ];
     }
 
     /** Return DokuWiki's visited-page breadcrumb history for the palette. */
