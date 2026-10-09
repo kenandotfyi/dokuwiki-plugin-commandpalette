@@ -17,6 +17,7 @@ class action_plugin_commandpalette extends ActionPlugin
     {
         // AJAX endpoint that renders the default page index list
         $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'ajaxIndex');
+        $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'ajaxRecent');
 }
 
     /**
@@ -40,10 +41,38 @@ class action_plugin_commandpalette extends ActionPlugin
             $INFO = pageinfo();
         }
 
-        // Adjust the indexmenu syntax/params below to match what you
-        // already use in your sidebar (namespace, sort options, etc.)
+        // Use the configured indexmenu syntax so namespace and display
+        // options can be adjusted in DokuWiki's Configuration Manager.
         $renderInfo = [];
-        $instructions = p_get_instructions('{{indexmenu>:}}');
+        $instructions = p_get_instructions($this->getConf('indexmenu'));
         echo p_render('xhtml', $instructions, $renderInfo);
+    }
+
+    /** Return DokuWiki's visited-page breadcrumb history for the palette. */
+    public function ajaxRecent(Event $event)
+    {
+        if ($event->data !== 'cmdpalette_recent') return;
+
+        $event->preventDefault();
+        $event->stopPropagation();
+        header('Content-Type: application/json; charset=utf-8');
+
+        global $ID, $INFO, $INPUT;
+        $requestedId = $INPUT->get->str('id');
+        if ($requestedId !== '') {
+            $ID = cleanID($requestedId);
+            $INFO = pageinfo();
+        }
+
+        $recentPages = [];
+        foreach (breadcrumbs() as $id => $title) {
+            $recentPages[] = [
+                'id' => $id,
+                'title' => $title,
+                'url' => wl($id),
+            ];
+        }
+
+        echo json_encode($recentPages, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
     }
 }

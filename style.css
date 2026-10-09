@@ -19,7 +19,7 @@
     width: 640px;
     max-width: 100%;
     box-sizing: border-box;
-    max-height: 36vh;
+    max-height: 48vh;
     overflow: hidden;
     color: #1f2937;
     background: #fff;
@@ -178,6 +178,46 @@
     outline: none;
 }
 
+#cmdp-recents[hidden] {
+    display: none;
+}
+
+#cmdp-recents {
+    padding: 8px 16px;
+    border-bottom: 1px solid #e8edf3;
+    background: #f8fafc;
+}
+
+#cmdp-recents-heading {
+    margin-bottom: 5px;
+    color: #64748b;
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+#cmdp-recents-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+}
+
+#cmdp-recents .cmdp-recent-link {
+    color: #475569;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    text-decoration: none;
+}
+
+#cmdp-recents .cmdp-recent-link:hover,
+#cmdp-recents .cmdp-recent-link:focus-visible {
+    color: #0f172a;
+    text-decoration: underline;
+    outline: none;
+}
+
 #cmdp-results {
     min-height: 0;
     max-height: 32vh;
@@ -189,6 +229,60 @@
 
 #cmdp-results::-webkit-scrollbar {
     display: none;
+}
+
+#cmdp-results[aria-busy="true"] {
+    cursor: progress;
+}
+
+#cmdp-results .cmdp-search-state {
+    padding: 10px;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+#cmdp-results .cmdp-search-section + .cmdp-search-section {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+}
+
+#cmdp-results .cmdp-search-section-title {
+    margin: 0 0 5px;
+    padding: 0 10px;
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+#cmdp-results dl.search_results {
+    margin: 0;
+}
+
+#cmdp-results dl.search_results dt {
+    margin: 0;
+}
+
+#cmdp-results dl.search_results dd.meta {
+    margin: 0 10px 3px;
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+#cmdp-results dl.search_results dd.snippet {
+    margin: 0 10px 10px;
+    color: #475569;
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+#cmdp-results .search_hit {
+    padding: 0 2px;
+    color: #1f2937;
+    background: yellowgreen;
 }
 
 #cmdp-results a {

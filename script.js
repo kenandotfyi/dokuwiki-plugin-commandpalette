@@ -43,6 +43,10 @@ function ensureModal() {
                 '<kbd id="cmdp-escape-hint">esc</kbd>' +
             '</div>' +
             '<div id="cmdp-actions" aria-label="Page actions"></div>' +
+            '<section id="cmdp-recents" aria-label="Recent pages" hidden>' +
+                '<div id="cmdp-recents-heading">Recents</div>' +
+                '<div id="cmdp-recents-links"></div>' +
+            '</section>' +
             '<div id="cmdp-results"></div>' +
         '</div>';
 
@@ -84,6 +88,7 @@ document.addEventListener('keydown', (e) => {
         const input = document.getElementById('cmdp-input');
         const results = document.getElementById('cmdp-results');
         const actions = document.getElementById('cmdp-actions');
+        const recents = document.getElementById('cmdp-recents');
 
         if (!modal || !input || !results) return;
 
@@ -91,7 +96,9 @@ document.addEventListener('keydown', (e) => {
         modal.style.display = 'none';
         input.value = '';
         if (actions) actions.hidden = false;
+        if (recents) recents.hidden = true;
         results.innerHTML = '';
+        results.removeAttribute('aria-busy');
     }
 });
 
@@ -120,6 +127,86 @@ async function loadDefaultIndex(results) {
         if (cmdpResultsController === controller) {
             cmdpResultsController = null;
         }
+    }
+}
+
+/** Render DokuWiki's full search results inside the palette instead of
+ * navigating away from the current page. */
+async function loadFullSearchResults(query, namespace = '') {
+    const results = document.getElementById('cmdp-results');
+    if (!results || !query) return;
+
+    const requestId = cancelPendingCmdpResults();
+    const controller = new AbortController();
+    cmdpResultsController = controller;
+    results.setAttribute('aria-busy', 'true');
+    results.innerHTML = '<div class="cmdp-search-state">Searching the wiki…</div>';
+
+    try {
+        const url = new URL(DOKU_BASE + 'doku.php', window.location.origin);
+        url.searchParams.set('do', 'search');
+        url.searchParams.set('q', query);
+        if (namespace) url.searchParams.set('id', namespace);
+
+        const response = await fetch(url.href, {
+            credentials: 'same-origin',
+            signal: controller.signal
+        });
+        if (!response.ok) throw new Error('Search request failed (' + response.status + ')');
+
+        const html = await response.text();
+        if (requestId !== cmdpResultsRequest) return;
+
+        const parsed = new DOMParser().parseFromString(html, 'text/html');
+        const fullTextMatches = parsed.querySelector('.search_fulltextresult');
+        const noResults = parsed.querySelector('.nothing');
+        results.replaceChildren();
+
+        const appendSection = (title, source) => {
+            if (!source) return;
+            const section = document.createElement('section');
+            section.className = 'cmdp-search-section';
+            const heading = document.createElement('h2');
+            heading.className = 'cmdp-search-section-title';
+            heading.textContent = title;
+            section.appendChild(heading);
+
+            const content = document.importNode(source, true);
+            // Resolve relative DokuWiki links against the search response URL
+            // because these nodes are moved into a document fragment.
+            content.querySelectorAll('[href]').forEach((link) => {
+                try {
+                    link.href = new URL(link.getAttribute('href'), response.url || url.href).href;
+                } catch (_error) {
+                    // Keep malformed or special links as rendered by DokuWiki.
+                }
+            });
+            content.querySelectorAll('script, form.search-results-form').forEach((node) => node.remove());
+            section.appendChild(content);
+            results.appendChild(section);
+        };
+
+        appendSection('Full text results', fullTextMatches);
+
+        if (!results.childElementCount && noResults) {
+            const message = document.createElement('div');
+            message.className = 'cmdp-search-state';
+            message.textContent = noResults.textContent.trim();
+            results.appendChild(message);
+        } else if (!results.childElementCount) {
+            const message = document.createElement('div');
+            message.className = 'cmdp-search-state';
+            message.textContent = 'No search results were returned.';
+            results.appendChild(message);
+        }
+    } catch (error) {
+        if (error.name !== 'AbortError' && requestId === cmdpResultsRequest) {
+            console.error('Full wiki search failed:', error);
+            results.innerHTML = '<div class="cmdp-search-state">Could not load search results.</div>';
+        }
+    } finally {
+        if (requestId === cmdpResultsRequest) results.removeAttribute('aria-busy');
+        if (cmdpResultsController === controller) cmdpResultsController = null;
     }
 }
 
@@ -182,16 +269,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const input = document.getElementById("cmdp-input");
     const actions = document.getElementById("cmdp-actions");
+    const recents = document.getElementById("cmdp-recents");
+    const recentLinks = document.getElementById("cmdp-recents-links");
     const results = document.getElementById("cmdp-results");
 
-    if (!input || !actions || !results) return;
+    if (!input || !actions || !recents || !recentLinks || !results) return;
 
     function closePalette() {
         cancelPendingCmdpResults();
         modalEl.style.display = 'none';
         input.value = '';
         actions.hidden = false;
+        recents.hidden = true;
         results.innerHTML = '';
+        results.removeAttribute('aria-busy');
     }
 
     modalEl.addEventListener('click', (event) => {
@@ -224,6 +315,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const actionGroups = new Map();
+    let recentRequest = 0;
 
     function getActionGroup(category) {
         if (!category) return actions;
@@ -287,7 +379,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function buildActions() {
+        recentRequest += 1;
         actions.replaceChildren();
+        recentLinks.replaceChildren();
+        recents.hidden = true;
         actionGroups.clear();
 
         const editLink = document.querySelector(
@@ -374,13 +469,58 @@ document.addEventListener("DOMContentLoaded", () => {
         actions.hidden = actions.childElementCount === 0;
     }
 
+    async function loadRecentTrace() {
+        const requestId = ++recentRequest;
+        const currentPageId = (window.JSINFO && JSINFO.id) || '';
+
+        try {
+            const url = DOKU_BASE + 'lib/exe/ajax.php?call=cmdpalette_recent' +
+                (currentPageId ? '&id=' + encodeURIComponent(currentPageId) : '');
+            const response = await fetch(url, { credentials: 'same-origin' });
+            if (!response.ok) throw new Error('Recent page request failed (' + response.status + ')');
+            const recentPages = await response.json();
+            if (requestId !== recentRequest || !Array.isArray(recentPages) || !recentPages.length) return;
+
+            recentPages.forEach((page) => {
+                if (!page.url || !page.title) return;
+                const link = document.createElement('a');
+                link.className = 'cmdp-recent-link';
+                link.href = page.url;
+                link.textContent = page.title;
+                link.title = page.id || page.title;
+                link.setAttribute('aria-label', page.title);
+                link.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    closePalette();
+                    if (event.shiftKey) {
+                        window.location.href = link.href;
+                        return;
+                    }
+
+                    const openInPanel = window.infinitepanelsOpenPage;
+                    if (typeof openInPanel === 'function') openInPanel(link.href);
+                    else window.location.href = link.href;
+                });
+                recentLinks.appendChild(link);
+            });
+            recents.hidden = recentLinks.childElementCount === 0 || Boolean(input.value.trim());
+        } catch (error) {
+            console.error('Failed to load recent pages:', error);
+        }
+    }
+
     buildActions();
-    document.addEventListener('cmdpalette:open', buildActions);
+    document.addEventListener('cmdpalette:open', () => {
+        buildActions();
+        loadRecentTrace();
+    });
 
     input.addEventListener("input", () => {
         const q = input.value.trim();
         actions.hidden = q.length > 0;
+        recents.hidden = q.length > 0 || recentLinks.childElementCount === 0;
         const requestId = cancelPendingCmdpResults();
+        results.removeAttribute('aria-busy');
 
         if (!q) {
             loadDefaultIndex(results);
@@ -431,6 +571,15 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        const resultUrl = new URL(a.href, window.location.href);
+        if (resultUrl.searchParams.get('do') === 'search') {
+            e.preventDefault();
+            const nextQuery = resultUrl.searchParams.get('q') || input.value.trim();
+            const namespace = resultUrl.searchParams.get('id') || '';
+            if (nextQuery) loadFullSearchResults(nextQuery, namespace);
+            return;
+        }
+
         const openInPanel = window.infinitepanelsOpenPage;
         if (typeof openInPanel === 'function') {
             e.preventDefault();
@@ -450,13 +599,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Enter always performs a full-text search for the typed query.
+    // Enter always performs a full-text search for the typed query and shows
+    // DokuWiki's results inside the palette.
     // Shift+Enter opens the focused result (or the first result) as a
     // real, solo navigation instead of using the right panel.
     modalEl.addEventListener("keydown", (e) => {
         if (e.key !== "Enter") return;
 
         const active = document.activeElement;
+        if (active?.classList.contains('cmdp-recent-link')) {
+            if (e.shiftKey) {
+                e.preventDefault();
+                closePalette();
+                window.location.href = active.href;
+            }
+            return;
+        }
         const isFolderToggle = active && active.classList.contains('cmdp-folder-toggle');
         if (!e.shiftKey && isFolderToggle) return; // Let the button's native Enter activate it.
 
@@ -464,7 +622,7 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             const q = input.value.trim();
             if (!q) return;
-            window.location.href = DOKU_BASE + "doku.php?do=search&q=" + encodeURIComponent(q);
+            loadFullSearchResults(q);
             return;
         }
 
