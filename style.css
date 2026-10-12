@@ -299,6 +299,16 @@ html[data-theme="dark"] .cmdp-theme-icon-light {
     margin: 0;
 }
 
+#cmdp-results .search_fullpage_result.cmdp-search-result-odd {
+    display: flow-root;
+    background-color: #f1f5f9;
+}
+
+#cmdp-results .search_fullpage_result.cmdp-search-result-even {
+    display: flow-root;
+    background-color: #fff;
+}
+
 #cmdp-results dl.search_results dt {
     margin: 0;
 }
@@ -426,6 +436,14 @@ html[data-theme="dark"] #cmdp-actions,
 html[data-theme="dark"] #cmdp-recents,
 html[data-theme="dark"] #cmdp-results .cmdp-search-section + .cmdp-search-section {
     border-color: #46515a;
+}
+
+html[data-theme="dark"] #cmdp-results .search_fullpage_result.cmdp-search-result-odd {
+    background-color: #2a333a;
+}
+
+html[data-theme="dark"] #cmdp-results .search_fullpage_result.cmdp-search-result-even {
+    background-color: #222a30;
 }
 
 html[data-theme="dark"] #cmdp-home-button,

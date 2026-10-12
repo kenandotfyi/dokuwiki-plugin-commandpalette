@@ -183,6 +183,11 @@ async function loadFullSearchResults(query, namespace = '') {
             section.appendChild(heading);
 
             const content = document.importNode(source, true);
+            content.querySelectorAll('.search_fullpage_result').forEach((result, index) => {
+                result.classList.add(index % 2 === 0
+                    ? 'cmdp-search-result-odd'
+                    : 'cmdp-search-result-even');
+            });
             // Resolve relative DokuWiki links against the search response URL
             // because these nodes are moved into a document fragment.
             content.querySelectorAll('[href]').forEach((link) => {
