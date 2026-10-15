@@ -56,6 +56,7 @@ class action_plugin_commandpalette extends ActionPlugin
             'type' => 'text/javascript',
             '_data' => 'window.CommandPaletteConfig = ' . json_encode([
                 'showThemeToggle' => (bool) $this->getConf('show_theme_toggle', 1),
+                'showAnnotations' => is_dir(DOKU_PLUGIN . 'annotations') && !plugin_isdisabled('annotations'),
             ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';',
         ];
     }

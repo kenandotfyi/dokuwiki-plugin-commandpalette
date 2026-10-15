@@ -31,9 +31,10 @@ function ensureModal() {
 
     modal = document.createElement('div');
     modal.id = 'cmdp-search-modal';
+    const themeConfig = window.FokusDarkModeConfig || window.SimplDarkModeConfig;
     const showThemeToggle = Boolean(
-        window.SimplDarkModeConfig &&
-        window.SimplDarkModeConfig.enabled &&
+        themeConfig &&
+        themeConfig.enabled &&
         window.CommandPaletteConfig &&
         window.CommandPaletteConfig.showThemeToggle
     );
@@ -453,7 +454,9 @@ document.addEventListener("DOMContentLoaded", () => {
         addAction('Media', 'media', mediaLink, mediaHref, null, siteActions);
         addAction('Extensions', 'extensions', null, adminBase + 'extension', null, siteActions);
         addAction('Config', 'config', null, adminBase + 'config', null, siteActions);
-        addAction('Annotations', 'annotations', null, adminBase + 'annotations', null, siteActions);
+        if (window.CommandPaletteConfig && window.CommandPaletteConfig.showAnnotations) {
+            addAction('Annotations', 'annotations', null, adminBase + 'annotations', null, siteActions);
+        }
         addAction('Logs', 'logs', null, adminBase + 'logviewer', null, siteActions);
 
         const currentPageId = (window.JSINFO && JSINFO.id) || '';
